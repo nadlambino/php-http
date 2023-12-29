@@ -1,0 +1,25 @@
+{
+    "name": "inspira/http",
+    "description": "PHP HTTP component.",
+    "type": "library",
+    "require": {
+        "psr/http-message": "2.0.x-dev",
+        "psr/http-server-middleware": "1.0.x-dev",
+        "psr/http-server-handler": "1.0.x-dev",
+        "inspira/container": "dev-master",
+        "inspira/contracts": "dev-master"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Inspira\\Http\\": "."
+        }
+    },
+    "authors": [
+        {
+            "name": "Ronald Lambino",
+            "email": "50892397+nadlambino@users.noreply.github.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
