@@ -6,6 +6,7 @@ namespace Inspira\Http\Router;
 
 use Closure;
 use Exception;
+use Inspira\Contracts\RenderableException;
 use Inspira\Http\Exceptions\DuplicateRouteNameException;
 use Inspira\Http\Exceptions\MethodNotAllowedException;
 use Inspira\Http\Exceptions\RouteNotFoundException;
@@ -42,6 +43,20 @@ class Router
 	 * @var Route|Exception|null
 	 */
 	private Route|Exception|null $currentRoute;
+
+	/**
+	 * The exception to be thrown when route not found was encountered
+	 *
+	 * @var Exception|RenderableException|string
+	 */
+	private Exception|RenderableException|string $notFoundException = RouteNotFoundException::class;
+
+	/**
+	 * The exception to be thrown when method not allowed was encountered
+	 *
+	 * @var Exception|RenderableException|string
+	 */
+	private Exception|RenderableException|string $notAllowedException = MethodNotAllowedException::class;
 
 	public function __construct(protected ServerRequestInterface $request) { }
 
@@ -146,10 +161,46 @@ class Router
 		}
 
 		if ($route) {
-			return $this->currentRoute = new MethodNotAllowedException();
+			return $this->currentRoute = is_object($this->notAllowedException)
+				? $this->notAllowedException
+				: new $this->notAllowedException();
 		}
 
-		return $this->currentRoute = new RouteNotFoundException();
+		return $this->currentRoute = is_object($this->notFoundException)
+			? $this->notFoundException
+			: new $this->notFoundException();
+	}
+
+	/**
+	 * @param string|Exception|RenderableException $exception
+	 * @return $this
+	 * @throws
+	 */
+	public function setNotFoundException(string|Exception|RenderableException $exception): self
+	{
+		if (is_string($exception) && !class_exists($exception)) {
+			throw new Exception("Unknown class `$exception`");
+		}
+
+		$this->notFoundException = $exception;
+
+		return $this;
+	}
+
+	/**
+	 * @param string|Exception|RenderableException $exception
+	 * @return $this
+	 * @throws
+	 */
+	public function setNotAllowedException(string|Exception|RenderableException $exception): self
+	{
+		if (is_string($exception) && !class_exists($exception)) {
+			throw new Exception("Unknown class `$exception`");
+		}
+
+		$this->notAllowedException = $exception;
+
+		return $this;
 	}
 
 	/**
