@@ -14,6 +14,7 @@ use Inspira\Http\Router\Router;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use JetBrains\PhpStorm\NoReturn;
 
 class Handler implements RequestHandlerInterface
 {
@@ -33,29 +34,22 @@ class Handler implements RequestHandlerInterface
 		}
 
 		return $response;
- 	}
+	}
 
 	/**
 	 * @param ResponseInterface $response
-	 * @return never
 	 * @throws
 	 */
-	public function send(ResponseInterface $response): never
+	#[NoReturn]
+	public function send(ResponseInterface $response)
 	{
 		$route = $this->router->getCurrentRoute();
 		$handler = $route instanceof Route ? $route->getHandler() : $route;
 
 		$resolved = $this->resolveHandler($handler, $response);
 
-		/**
-		 * Get an updated request object because there might be a modification happened from the implementor
-		 * @var ServerRequestInterface $request
-		 */
-		$request = $this->container->make(ServerRequestInterface::class);
-
 		$response = $this->processResolved($resolved);
-		$this->sendHttpResponse($request, $response);
-		exit(1);
+		$this->sendHttpResponse($response);
 	}
 
 	/**
@@ -84,7 +78,7 @@ class Handler implements RequestHandlerInterface
 	private function processResolved(mixed $resolved): ResponseInterface
 	{
 		/** @var ResponseInterface $response */
-		$response = Container::getInstance()->make(Response::class);
+		$response = $this->container->make(Response::class);
 		$responseHasContent = !empty($response->getContent());
 
 		return match (true) {
@@ -104,12 +98,19 @@ class Handler implements RequestHandlerInterface
 	}
 
 	/**
-	 * @param ServerRequestInterface $request
 	 * @param ResponseInterface $response
-	 * @return void
+	 * @throws
 	 */
-	private function sendHttpResponse(ServerRequestInterface $request, ResponseInterface $response): void
+	#[NoReturn]
+	private function sendHttpResponse(ResponseInterface $response)
 	{
+		/**
+		 * Get an updated request object because there might be a modification happened from the implementor/middlewares
+		 *
+		 * @var ServerRequestInterface $request
+		 */
+		$request = $this->container->make(ServerRequestInterface::class);
+
 		foreach ($response->getHeaders() as $name => $values) {
 			foreach ($values as $value) {
 				header("$name: $value", false);
@@ -122,5 +123,6 @@ class Handler implements RequestHandlerInterface
 
 		http_response_code($response->getStatusCode());
 		$response->getBody()->write($response->getContent());
+		exit(0);
 	}
 }
