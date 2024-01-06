@@ -61,12 +61,13 @@ class Handler implements RequestHandlerInterface
 	private function resolveHandler(mixed $handler, ResponseInterface $response): mixed
 	{
 		return match (true) {
-			$handler instanceof Closure             => $this->container->resolve($handler),
-			is_array($handler)                      => $this->container->resolve($handler[0], $handler[1]),
-			is_null($handler)                       => $response->withStatus(Status::OK->value),
-			$handler instanceof RenderableException => $response->withStatus($handler->getCode())->withContent($handler->render()),
-			$handler instanceof Exception           => $response->withStatus($handler->getCode()),
-			default                                 => $response->withStatus(Status::INTERNAL_SERVER_ERROR->value)
+			$response->getStatusCode() >= Status::BAD_REQUEST->value => $response,
+			$handler instanceof Closure                              => $this->container->resolve($handler),
+			is_array($handler)                                       => $this->container->resolve($handler[0], $handler[1]),
+			is_null($handler)                                        => $response->withStatus(Status::OK->value),
+			$handler instanceof RenderableException                  => $response->withStatus($handler->getCode())->withContent($handler->render()),
+			$handler instanceof Exception                            => $response->withStatus($handler->getCode()),
+			default                                                  => $response->withStatus(Status::INTERNAL_SERVER_ERROR->value)
 		};
 	}
 
