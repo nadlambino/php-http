@@ -6,8 +6,22 @@ namespace Inspira\Http;
 
 use Psr\Http\Message\UriInterface;
 
+/**
+ * Represents a Uniform Resource Identifier (URI) and implements the UriInterface.
+ */
 class Uri implements UriInterface
 {
+	/**
+	 * Constructor to initialize URI components.
+	 *
+	 * @param string $scheme     The URI scheme.
+	 * @param string $host       The URI host.
+	 * @param int|null $port     The URI port.
+	 * @param string $path       The URI path.
+	 * @param string $query      The URI query.
+	 * @param string $fragment   The URI fragment.
+	 * @param string $userInfo   The URI user info.
+	 */
 	public function __construct(
 		protected string $scheme = '',
 		protected string $host = '',
@@ -15,9 +29,8 @@ class Uri implements UriInterface
 		protected string $path = '',
 		protected string $query = '',
 		protected string $fragment = '',
-		protected string $userInfo = '',
-	)
-	{
+		protected string $userInfo = ''
+	) {
 		$this->setScheme($scheme);
 		$this->setHost($host);
 		$this->setPort($port);
@@ -27,7 +40,7 @@ class Uri implements UriInterface
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function getScheme(): string
 	{
@@ -35,9 +48,10 @@ class Uri implements UriInterface
 	}
 
 	/**
-	 * Set the URI scheme. If the scheme is null, get the scheme from the $_SERVER
+	 * Set the URI scheme. If the scheme is null, retrieve it from the $_SERVER.
 	 *
-	 * @param string|null $scheme
+	 * @param string|null $scheme The URI scheme.
+	 *
 	 * @return $this
 	 */
 	public function setScheme(string $scheme = null): static
@@ -48,7 +62,7 @@ class Uri implements UriInterface
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function getAuthority(): string
 	{
@@ -61,7 +75,7 @@ class Uri implements UriInterface
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function getUserInfo(): string
 	{
@@ -69,9 +83,10 @@ class Uri implements UriInterface
 	}
 
 	/**
-	 * Set the user info component of the URI. If the userInfo is null, get the value from the $_SERVER.
+	 * Set the user info component of the URI. If the userInfo is null, retrieve it from the $_SERVER.
 	 *
-	 * @param string|null $userInfo
+	 * @param string|null $userInfo The user info component of the URI.
+	 *
 	 * @return $this
 	 */
 	public function setUserInfo(string $userInfo = null): static
@@ -82,8 +97,8 @@ class Uri implements UriInterface
 		}
 
 		$host = $_SERVER['HTTP_HOST'] ?? '';
-		if (str_contains('@', $host)) {
-			[$userInfo] = explode('@', $host)[0];
+		if (str_contains($host, '@')) {
+			[$userInfo] = explode('@', $host);
 			$this->userInfo = $userInfo;
 		}
 
@@ -91,7 +106,7 @@ class Uri implements UriInterface
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function getHost(): string
 	{
@@ -99,27 +114,26 @@ class Uri implements UriInterface
 	}
 
 	/**
-	 * Set the host component of the URI. If the host is empty, get the value from the $_SERVER
+	 * Set the host component of the URI. If the host is empty, retrieve it from the $_SERVER.
 	 *
-	 * @param string|null $host
+	 * @param string|null $host The URI host.
+	 *
 	 * @return $this
 	 */
 	public function setHost(string $host = null): static
 	{
-		if (!empty($host)) {
-			$this->host = strtolower($host);
-			return $this;
+		if (empty($host)) {
+			$domain = $_SERVER['HTTP_HOST'] ?? '';
+			[$host] = explode(':', $domain);
 		}
 
-		$host = $_SERVER['HTTP_HOST'] ?? '';
-		[$hostname] = explode(':', $host);
-		$this->host = strtolower($hostname);
+		$this->host = strtolower($host);
 
 		return $this;
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function getPort(): ?int
 	{
@@ -127,9 +141,10 @@ class Uri implements UriInterface
 	}
 
 	/**
-	 * Set the port component of URI. If port is empty, get the value from the $_SERVER
+	 * Set the port component of URI. If port is empty, retrieve it from the $_SERVER.
 	 *
-	 * @param int|null $port
+	 * @param int|null $port The URI port.
+	 *
 	 * @return $this
 	 */
 	public function setPort(int $port = null): static
@@ -141,7 +156,7 @@ class Uri implements UriInterface
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function getPath(): string
 	{
@@ -149,9 +164,10 @@ class Uri implements UriInterface
 	}
 
 	/**
-	 * Set the path component of the URI. If path is empty, get the value from the $_SERVER.
+	 * Set the path component of the URI. If path is empty, retrieve it from the $_SERVER.
 	 *
-	 * @param string|null $path
+	 * @param string|null $path The URI path.
+	 *
 	 * @return $this
 	 */
 	public function setPath(string $path = null): static
@@ -167,7 +183,7 @@ class Uri implements UriInterface
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function getQuery(): string
 	{
@@ -175,9 +191,10 @@ class Uri implements UriInterface
 	}
 
 	/**
-	 * Set the query component of the URI. If the query is empty, get the value from the $_SERVER.
+	 * Set the query component of the URI. If the query is empty, retrieve it from the $_SERVER.
 	 *
-	 * @param string|null $query
+	 * @param string|null $query The URI query.
+	 *
 	 * @return $this
 	 */
 	public function setQuery(string $query = null): static
@@ -188,7 +205,7 @@ class Uri implements UriInterface
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function getFragment(): string
 	{
@@ -196,7 +213,20 @@ class Uri implements UriInterface
 	}
 
 	/**
-	 * @inheritdoc
+	 * Set the fragment component of the URI.
+	 *
+	 * @param string|null $fragment
+	 * @return $this
+	 */
+	public function setFragment(string $fragment = null): static
+	{
+		$this->fragment = $fragment;
+
+		return $this;
+	}
+
+	/**
+	 * {@inheritdoc}
 	 */
 	public function withScheme(string $scheme): UriInterface
 	{
@@ -207,76 +237,74 @@ class Uri implements UriInterface
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function withUserInfo(string $user, ?string $password = null): UriInterface
 	{
 		$self = clone $this;
 		$self->userInfo = $user;
-		if (!empty($password)) {
-			$self->userInfo .= ':' . $password;
-		}
+		$self->userInfo .= empty($password) ? '' : ':' . $password;
 
 		return $self;
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function withHost(string $host): UriInterface
 	{
 		$self = clone $this;
-		$self->host = $host;
+		$self->setHost($host);
 
 		return $self;
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function withPort(?int $port): UriInterface
 	{
 		$self = clone $this;
-		$self->port = $port;
+		$self->setPort($port);
 
 		return $self;
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function withPath(string $path): UriInterface
 	{
 		$self = clone $this;
-		$self->path = $path;
+		$self->setPath($path);
 
 		return $self;
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function withQuery(string $query): UriInterface
 	{
 		$self = clone $this;
-		$self->$query = $query;
+		$self->setQuery($query);
 
 		return $self;
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function withFragment(string $fragment): UriInterface
 	{
 		$self = clone $this;
-		$self->fragment = $fragment;
+		$self->setFragment($fragment);
 
 		return $self;
 	}
 
 	/**
-	 * @inheritdoc
+	 * {@inheritdoc}
 	 */
 	public function __toString(): string
 	{
