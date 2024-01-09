@@ -304,9 +304,13 @@ class Uri implements UriInterface
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Build the complete URI string based on the current object state.
+	 *
+	 * This method assembles the URI components into a complete URI string.
+	 *
+	 * @return string The complete URI string.
 	 */
-	public function __toString(): string
+	public function build(): string
 	{
 		$scheme = !empty($this->scheme) ? $this->scheme . '://' : '';
 		$host = rtrim($this->getAuthority(), '/');
@@ -315,5 +319,13 @@ class Uri implements UriInterface
 		$fragment = !empty($this->fragment) ? '#' . $this->fragment : $this->fragment;
 
 		return $scheme . $host . $uri . $query . $fragment;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function __toString(): string
+	{
+		return $this->build();
 	}
 }
