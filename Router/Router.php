@@ -13,63 +13,77 @@ use Inspira\Http\Exceptions\RouteNotFoundException;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
+ * The Router class handles the registration of routes and matching incoming requests.
+ *
+ * This class allows you to register routes for various HTTP methods (GET, POST, PUT, DELETE).
+ * It also supports named routes and provides methods to retrieve information about the current route.
+ *
  * @author Ronald Lambino
  */
 class Router
 {
 	/**
-	 * Array of all registered routes
+	 * Array of all registered routes.
 	 *
 	 * @var array<string, Route[]> $routes
 	 */
-	private array $routes = [
-		'GET'       => [],
-		'POST'      => [],
-		'PUT'       => [],
-		'DELETE'    => [],
+	protected array $routes = [
+		'GET' => [],
+		'POST' => [],
+		'PUT' => [],
+		'DELETE' => [],
 	];
 
 	/**
-	 * Array of all registered named routes
+	 * Array of all registered named routes.
 	 *
 	 * @var array<string, Route> $namedRoutes
 	 */
-	private array $namedRoutes = [];
+	protected array $namedRoutes = [];
 
 	/**
-	 * The route object that matches the request uri
-	 * It could also be an instance of RouteNotFoundException or MethodNotAllowedException
+	 * The route object that matches the request URI.
+	 * It could also be an instance of RouteNotFoundException or MethodNotAllowedException.
 	 *
 	 * @var Route|Exception|null
 	 */
-	private Route|Exception|null $currentRoute;
+	protected Route|Exception|null $currentRoute;
 
 	/**
-	 * The exception to be thrown when route not found was encountered
+	 * The exception to be thrown when a route is not found.
 	 *
 	 * @var Exception|RenderableException|string
 	 */
-	private Exception|RenderableException|string $notFoundException = RouteNotFoundException::class;
+	protected Exception|RenderableException|string $notFoundException = RouteNotFoundException::class;
 
 	/**
-	 * The exception to be thrown when method not allowed was encountered
+	 * The exception to be thrown when the method is not allowed.
 	 *
 	 * @var Exception|RenderableException|string
 	 */
-	private Exception|RenderableException|string $notAllowedException = MethodNotAllowedException::class;
-
-	public function __construct(protected ServerRequestInterface $request) { }
+	protected Exception|RenderableException|string $notAllowedException = MethodNotAllowedException::class;
 
 	/**
-	 * Register a http get request on the given route
-	 * Callback could be a closure or an array of [class, method]
-	 * See register method for all accepted parameters
+	 * Router constructor.
+	 *
+	 * @param ServerRequestInterface $request
+	 */
+	public function __construct(protected ServerRequestInterface $request)
+	{
+	}
+
+	/**
+	 * Register a http get request on the given route.
+	 *
+	 * Callback could be a closure or an array of [class, method].
+	 * See register method for all accepted parameters.
 	 *
 	 * @param string $uri
 	 * @param Closure|array $handler
 	 * @param array|string $middlewares
 	 * @param string|null $name
 	 * @return Route
+	 * @throws DuplicateRouteNameException
 	 */
 	public function get(string $uri, Closure|array $handler, array|string $middlewares = [], ?string $name = null): Route
 	{
@@ -77,15 +91,17 @@ class Router
 	}
 
 	/**
-	 * Register a http post request on the given route
-	 * Callback could be a closure or an array of [class, method]
-	 * See register method for all accepted parameters
+	 * Register a http post request on the given route.
+	 *
+	 * Callback could be a closure or an array of [class, method].
+	 * See register method for all accepted parameters.
 	 *
 	 * @param string $uri
 	 * @param Closure|array $handler
 	 * @param array|string $middlewares
 	 * @param string|null $name
 	 * @return Route
+	 * @throws DuplicateRouteNameException
 	 */
 	public function post(string $uri, Closure|array $handler, array|string $middlewares = [], ?string $name = null): Route
 	{
@@ -93,15 +109,17 @@ class Router
 	}
 
 	/**
-	 * Register a http put request on the given route
-	 * Callback could be a closure or an array of [class, method]
-	 * See register method for all accepted parameters
+	 * Register a http put request on the given route.
+	 *
+	 * Callback could be a closure or an array of [class, method].
+	 * See register method for all accepted parameters.
 	 *
 	 * @param string $uri
 	 * @param Closure|array $handler
 	 * @param array|string $middlewares
 	 * @param string|null $name
 	 * @return Route
+	 * @throws DuplicateRouteNameException
 	 */
 	public function put(string $uri, Closure|array $handler, array|string $middlewares = [], ?string $name = null): Route
 	{
@@ -109,15 +127,17 @@ class Router
 	}
 
 	/**
-	 * Register a http delete request on the given route
-	 * Callback could be a closure or an array of [class, method]
-	 * See register method for all accepted parameters
+	 * Register a http delete request on the given route.
+	 *
+	 * Callback could be a closure or an array of [class, method].
+	 * See register method for all accepted parameters.
 	 *
 	 * @param string $uri
 	 * @param Closure|array $handler
 	 * @param array|string $middlewares
 	 * @param string|null $name
 	 * @return Route
+	 * @throws DuplicateRouteNameException
 	 */
 	public function delete(string $uri, Closure|array $handler, array|string $middlewares = [], ?string $name = null): Route
 	{
@@ -125,19 +145,19 @@ class Router
 	}
 
 	/**
-	 * Get the route object that matches the request uri
+	 * Get the route object that matches the request URI.
 	 *
-	 * If the uri matches a registered route and the methods are the same
-	 * Then return the route object
+	 * If the URI matches a registered route and the methods are the same,
+	 * then return the route object.
 	 *
-	 * If the uri matches a registered route and the request method is OPTIONS or HEAD
-	 * Then return a null. The handler will interpret it that there's no response content
+	 * If the URI matches a registered route and the request method is OPTIONS or HEAD,
+	 * then return null. The handler will interpret it that there's no response content.
 	 *
-	 * If the uri matches a registered route but the method did not match
-	 * Then return a MethodNotAllowedException
+	 * If the URI matches a registered route but the method did not match,
+	 * then return a MethodNotAllowedException.
 	 *
-	 * If the uri did not match any registered route
-	 * Then return a RouteNotFoundException
+	 * If the URI did not match any registered route,
+	 * then return a RouteNotFoundException.
 	 *
 	 * @return Route|Exception|null
 	 */
@@ -172,9 +192,11 @@ class Router
 	}
 
 	/**
+	 * Set the value of NotFoundException to handle route not found scenarios.
+	 *
 	 * @param string|Exception|RenderableException $exception
 	 * @return $this
-	 * @throws
+	 * @throws Exception
 	 */
 	public function setNotFoundException(string|Exception|RenderableException $exception): self
 	{
@@ -188,9 +210,11 @@ class Router
 	}
 
 	/**
+	 * Set the value of NotAllowedException to handle method not allowed scenarios.
+	 *
 	 * @param string|Exception|RenderableException $exception
 	 * @return $this
-	 * @throws
+	 * @throws Exception
 	 */
 	public function setNotAllowedException(string|Exception|RenderableException $exception): self
 	{
@@ -204,8 +228,9 @@ class Router
 	}
 
 	/**
-	 * Get methods that are allowed from the given uri
-	 * This is usually used by OPTIONS request method
+	 * Get the allowed HTTP methods for the given URI.
+	 *
+	 * This is usually used by OPTIONS request method.
 	 *
 	 * @param string $uri
 	 * @return array
@@ -225,7 +250,7 @@ class Router
 	}
 
 	/**
-	 * Register a new route with the given attributes
+	 * Register a new route with the given attributes.
 	 *
 	 * @param string $method
 	 * @param string $uri
@@ -233,14 +258,14 @@ class Router
 	 * @param array|string $middlewares
 	 * @param string|null $name
 	 * @return Route
-	 * @throws
+	 * @throws DuplicateRouteNameException
 	 */
-	private function register(
-		string $method,
-		string $uri,
+	protected function register(
+		string        $method,
+		string        $uri,
 		Closure|array $handler,
-		array|string $middlewares = [],
-		?string $name = null
+		array|string  $middlewares = [],
+		?string       $name = null
 	): Route
 	{
 		$uri = rtrim($uri, '/');
@@ -260,12 +285,14 @@ class Router
 	}
 
 	/**
+	 * Register a new named route.
+	 *
 	 * @param string $name
 	 * @param Route $route
 	 * @return void
 	 * @throws DuplicateRouteNameException
 	 */
-	private function registerNamedRoute(string $name, Route $route): void
+	protected function registerNamedRoute(string $name, Route $route): void
 	{
 		$namedRoute = $this->namedRoutes[$name] ?? null;
 		if ($namedRoute) {
@@ -277,11 +304,11 @@ class Router
 	}
 
 	/**
-	 * Set the value of currentRoute to avoid calling the getMatchedRoute many times throughout the request
+	 * Set the value of currentRoute to avoid calling the getMatchedRoute many times throughout the request.
 	 *
 	 * @return void
 	 */
-	private function setCurrentRoute(): void
+	protected function setCurrentRoute(): void
 	{
 		$method = $this->request->getMethod();
 		$uri = $this->request->getUri()->getPath();
@@ -289,13 +316,13 @@ class Router
 	}
 
 	/**
-	 * Get the route instance that matches the given uri
+	 * Get the route instance that matches the given URI.
 	 *
 	 * @param Route[] $routes
 	 * @param string $uri
 	 * @return Route|null
 	 */
-	private function getMatchedRoute(array $routes, string $uri): ?Route
+	protected function getMatchedRoute(array $routes, string $uri): ?Route
 	{
 		$route = $routes[$uri] ?? null;
 		if ($route instanceof Route) {
