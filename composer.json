@@ -10,6 +10,9 @@
         "inspira/contracts": "dev-master",
         "inspira/utils": "dev-master"
     },
+    "require-dev": {
+        "symfony/var-dumper": "7.1.x-dev"
+    },
     "license": "MIT",
     "autoload": {
         "psr-4": {
