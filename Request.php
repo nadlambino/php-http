@@ -11,38 +11,60 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 
+/**
+ * Represents an HTTP request and implements the ServerRequestInterface.
+ */
 class Request extends Message implements ServerRequestInterface
 {
 	use Clonable;
 
+	/**
+	 * @var array Middleware array containing both global and route-specific middleware.
+	 */
 	private array $middlewares = [];
 
+	/**
+	 * Constructor for the Request class.
+	 *
+	 * @param string $method The HTTP request method.
+	 * @param array $files An array of uploaded files.
+	 * @param array $query An array of query parameters.
+	 * @param array $attributes An array of request attributes.
+	 * @param array $headers An array of request headers.
+	 * @param array $cookies An array of request cookies.
+	 * @param array $server An array of server parameters.
+	 * @param string $requestTarget The request target.
+	 * @param mixed $parsedBody The parsed request body.
+	 * @param string $version The HTTP protocol version.
+	 * @param UriInterface|null $uri The request URI.
+	 * @param RequestBody|null $body The request body.
+	 */
 	public function __construct(
-		protected string $method = '',
-		protected array $files = [],
-		protected array $query = [],
-		protected array $attributes = [],
-		protected array $headers = [],
-		protected array $cookies = [],
-		protected array $server = [],
-		protected string $requestTarget = '',
-		protected mixed $parsedBody = null,
-		protected string $version = '',
+		protected string        $method = '',
+		protected array         $files = [],
+		protected array         $query = [],
+		protected array         $attributes = [],
+		protected array         $headers = [],
+		protected array         $cookies = [],
+		protected array         $server = [],
+		protected string        $requestTarget = '',
+		protected mixed         $parsedBody = null,
+		protected string        $version = '',
 		protected ?UriInterface $uri = null,
-		?RequestBody $body = null,
-	) {
+		?RequestBody            $body = null,
+	)
+	{
 		$this->body = $body ?? new RequestBody();
 		$this->uri ??= new Uri();
-		$this->extractQueryParams()
-			->extractParsedBody();
+		$this->extractQueryParams()->extractParsedBody();
 	}
 
 	/**
-	 * Get request parameter/attribute via property access
+	 * Get request parameter/attribute via property access.
 	 *
-	 * @param string $property
-	 * @return mixed
-	 * @throws Exception
+	 * @param string $property The property to retrieve.
+	 * @return mixed The value of the specified property.
+	 * @throws Exception If the property does not exist on the request object.
 	 */
 	public function __get(string $property): mixed
 	{
@@ -51,71 +73,101 @@ class Request extends Message implements ServerRequestInterface
 			return $data[$property];
 		}
 
-		throw new RequestPropertyNotFoundException("Property `$property` does not exist on request object");
+		throw new RequestPropertyNotFoundException("Property `$property` does not exist on the request object");
 	}
 
 	/**
-	 * Get a request parameter/attribute
+	 * Get a request parameter/attribute.
 	 *
-	 * @param string $property
-	 * @param $default
-	 * @return mixed
+	 * @param string $property The property to retrieve.
+	 * @param mixed $default The default value if the property is not found.
+	 * @return mixed The value of the specified property or the default value.
 	 */
-	public function get(string $property, $default = null): mixed
+	public function get(string $property, mixed $default = null): mixed
 	{
 		$data = $this->all();
 		return $data[$property] ?? $default;
 	}
 
 	/**
-	 * Get all request parameters/attributes
+	 * Get all request parameters/attributes.
 	 *
-	 * @return array
+	 * @return array An array containing all request parameters and attributes.
 	 */
 	public function all(): array
 	{
 		return [
 			...$this->getParsedBody(),
 			...$this->getAttributes(),
-			...$this->getQueryParams()
+			...$this->getQueryParams(),
 		];
 	}
 
+	/**
+	 * Check if the request method is GET.
+	 *
+	 * @return bool True if the request method is GET; false otherwise.
+	 */
 	public function isGet(): bool
 	{
 		return $this->getMethod() === 'GET';
 	}
 
+	/**
+	 * Check if the request method is POST.
+	 *
+	 * @return bool True if the request method is POST; false otherwise.
+	 */
 	public function isPost(): bool
 	{
 		return $this->getMethod() === 'POST';
 	}
 
+	/**
+	 * Check if the request method is PUT.
+	 *
+	 * @return bool True if the request method is PUT; false otherwise.
+	 */
 	public function isPut(): bool
 	{
 		return $this->getMethod() === 'PUT';
 	}
 
+	/**
+	 * Check if the request method is DELETE.
+	 *
+	 * @return bool True if the request method is DELETE; false otherwise.
+	 */
 	public function isDelete(): bool
 	{
 		return $this->getMethod() === 'DELETE';
 	}
 
+	/**
+	 * Check if the request method is HEAD.
+	 *
+	 * @return bool True if the request method is HEAD; false otherwise.
+	 */
 	public function isHead(): bool
 	{
 		return $this->getMethod() === 'HEAD';
 	}
 
+	/**
+	 * Check if the request method is OPTIONS.
+	 *
+	 * @return bool True if the request method is OPTIONS; false otherwise.
+	 */
 	public function isOptions(): bool
 	{
 		return $this->getMethod() === 'OPTIONS';
 	}
 
 	/**
-	 * Append a middleware that were run during this request
+	 * Append a middleware that was run during this request.
 	 *
-	 * @param string $middleware
-	 * @param bool $global
+	 * @param string $middleware The middleware to append.
+	 * @param bool $global Whether the middleware is global or route-specific.
 	 */
 	public function appendMiddleware(string $middleware, bool $global)
 	{
@@ -123,9 +175,9 @@ class Request extends Message implements ServerRequestInterface
 	}
 
 	/**
-	 * Get all middlewares that were run during this request
+	 * Get all middlewares that were run during this request.
 	 *
-	 * @return array
+	 * @return array An array containing global and route-specific middlewares.
 	 */
 	public function getMiddlewares(): array
 	{
@@ -257,6 +309,11 @@ class Request extends Message implements ServerRequestInterface
 		return $this->query;
 	}
 
+	/**
+	 * Extract query parameters from the request URI.
+	 *
+	 * @return static The modified request object.
+	 */
 	protected function extractQueryParams(): static
 	{
 		$queries = explode('&', $this->uri->getQuery());
@@ -320,6 +377,11 @@ class Request extends Message implements ServerRequestInterface
 		return $this->parsedBody;
 	}
 
+	/**
+	 * Extract and parse the request body.
+	 *
+	 * @return static The modified request object.
+	 */
 	protected function extractParsedBody(): static
 	{
 		$contents = $this->body->getContents();
@@ -331,7 +393,7 @@ class Request extends Message implements ServerRequestInterface
 			$this->parsedBody = $contentType === 'application/json' ? $data : [...$_POST, ...$_FILES];
 		} else {
 			$data = is_array($parsed) ? $parsed : [];
-			$this->parsedBody = [...$_GET,  ...$data];
+			$this->parsedBody = [...$_GET, ...$data];
 		}
 
 		return $this;
@@ -357,10 +419,10 @@ class Request extends Message implements ServerRequestInterface
 	}
 
 	/**
-	 * Set new attributes
+	 * Set new request attributes.
 	 *
-	 * @param array $attributes
-	 * @return Request
+	 * @param array $attributes The attributes to set.
+	 * @return Request The modified request object.
 	 */
 	public function withAttributes(array $attributes): Request
 	{
