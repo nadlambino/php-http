@@ -5,31 +5,40 @@ declare(strict_types=1);
 namespace Inspira\Http;
 
 use Inspira\Contracts\Arrayable;
-use InvalidArgumentException;
+use Iterator;
 use Psr\Http\Message\ResponseInterface;
 
+/**
+ * Represents an HTTP response and implements the ResponseInterface.
+ */
 class Response extends Message implements ResponseInterface
 {
 	use Clonable;
 
+	/**
+	 * Constructor for the Response class.
+	 *
+	 * @param mixed $content The response content.
+	 * @param int $status The HTTP response status code.
+	 * @param mixed $reason The reason phrase associated with the status code.
+	 * @param array $headers An array of response headers.
+	 * @param string $version The HTTP protocol version.
+	 * @param ResponseBody|null $body The response body.
+	 */
 	public function __construct(
-		ResponseBody $body,
-		protected mixed $content = '',
-		protected int $status = 200,
-		protected $reason = '',
-		protected array $headers = [],
+		protected mixed  $content = '',
+		protected int    $status = 200,
+		protected string $reason = '',
+		protected array  $headers = [],
 		protected string $version = '',
-	) {
-		$this->body = $body;
+		?ResponseBody    $body = null,
+	)
+	{
+		$this->body = $body ?? new ResponseBody();
 	}
 
 	/**
-	 * Gets the response status code.
-	 *
-	 * The status code is a 3-digit integer result code of the server's attempt
-	 * to understand and satisfy the request.
-	 *
-	 * @return int Status code.
+	 * {@inheritdoc}
 	 */
 	public function getStatusCode(): int
 	{
@@ -37,24 +46,7 @@ class Response extends Message implements ResponseInterface
 	}
 
 	/**
-	 * Return an instance with the specified status code and, optionally, reason phrase.
-	 *
-	 * If no reason phrase is specified, implementations MAY choose to default
-	 * to the RFC 7231 or IANA recommended reason phrase for the response's
-	 * status code.
-	 *
-	 * This method MUST be implemented in such a way as to retain the
-	 * immutability of the message, and MUST return an instance that has the
-	 * updated status and reason phrase.
-	 *
-	 * @link http://tools.ietf.org/html/rfc7231#section-6
-	 * @link http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
-	 * @param int $code The 3-digit integer result code to set.
-	 * @param string $reasonPhrase The reason phrase to use with the
-	 *     provided status code; if none is provided, implementations MAY
-	 *     use the defaults as suggested in the HTTP specification.
-	 * @return static
-	 * @throws InvalidArgumentException For invalid status code arguments.
+	 * {@inheritdoc}
 	 */
 	public function withStatus(int $code, string $reasonPhrase = ''): ResponseInterface
 	{
@@ -66,28 +58,29 @@ class Response extends Message implements ResponseInterface
 	}
 
 	/**
-	 * Gets the response reason phrase associated with the status code.
-	 *
-	 * Because a reason phrase is not a required element in a response
-	 * status line, the reason phrase value MAY be null. Implementations MAY
-	 * choose to return the default RFC 7231 recommended reason phrase (or those
-	 * listed in the IANA HTTP Status Code Registry) for the response's
-	 * status code.
-	 *
-	 * @link http://tools.ietf.org/html/rfc7231#section-6
-	 * @link http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
-	 * @return string Reason phrase; must return an empty string if none present.
+	 * {@inheritdoc}
 	 */
 	public function getReasonPhrase(): string
 	{
 		return $this->reason ??= '';
 	}
 
-	public function getContent()
+	/**
+	 * Get the response content.
+	 *
+	 * @return string The response content.
+	 */
+	public function getContent(): string
 	{
 		return $this->content;
 	}
 
+	/**
+	 * Set the response content.
+	 *
+	 * @param string $content The content to set.
+	 * @return self The modified response object.
+	 */
 	public function withContent(string $content): self
 	{
 		$self = clone $this;
@@ -96,6 +89,11 @@ class Response extends Message implements ResponseInterface
 		return $self;
 	}
 
+	/**
+	 * Remove the response content.
+	 *
+	 * @return self The modified response object.
+	 */
 	public function withoutContent(): self
 	{
 		$self = clone $this;
@@ -104,6 +102,12 @@ class Response extends Message implements ResponseInterface
 		return $self;
 	}
 
+	/**
+	 * Redirect the response to a specified URL.
+	 *
+	 * @param string $url The URL to redirect to.
+	 * @param bool $permanent Whether the redirect is permanent.
+	 */
 	public function redirect(string $url, bool $permanent = false): void
 	{
 		$self = clone $this;
@@ -112,17 +116,23 @@ class Response extends Message implements ResponseInterface
 			->withAddedHeader('Location', $url);
 	}
 
-	public function json(array|\Iterator|Arrayable $data): self
+	/**
+	 * Set the response content as JSON.
+	 *
+	 * @param array|Iterator|Arrayable $data The data to encode as JSON.
+	 * @return self The modified response object.
+	 */
+	public function json(array|Iterator|Arrayable $data): self
 	{
 		$data = match (true) {
-			is_array($data)            => $data,
-			$data instanceof \Iterator => iterator_to_array($data),
-			$data instanceof Arrayable => $data->toArray()
+			is_array($data) => $data,
+			$data instanceof Iterator => iterator_to_array($data),
+			$data instanceof Arrayable => $data->toArray(),
 		};
 
 		$self = clone $this;
 		return $self
 			->withHeader('Content-Type', 'application/json')
-			->withContent((string) json_encode($data));
+			->withContent((string)json_encode($data));
 	}
 }

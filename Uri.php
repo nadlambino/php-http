@@ -14,23 +14,24 @@ class Uri implements UriInterface
 	/**
 	 * Constructor to initialize URI components.
 	 *
-	 * @param string $scheme     The URI scheme.
-	 * @param string $host       The URI host.
-	 * @param int|null $port     The URI port.
-	 * @param string $path       The URI path.
-	 * @param string $query      The URI query.
-	 * @param string $fragment   The URI fragment.
-	 * @param string $userInfo   The URI user info.
+	 * @param string $scheme The URI scheme.
+	 * @param string $host The URI host.
+	 * @param int|null $port The URI port.
+	 * @param string $path The URI path.
+	 * @param string $query The URI query.
+	 * @param string $fragment The URI fragment.
+	 * @param string $userInfo The URI user info.
 	 */
 	public function __construct(
 		protected string $scheme = '',
 		protected string $host = '',
-		protected ?int $port = null,
+		protected ?int   $port = null,
 		protected string $path = '',
 		protected string $query = '',
 		protected string $fragment = '',
 		protected string $userInfo = ''
-	) {
+	)
+	{
 		$this->setScheme($scheme);
 		$this->setHost($host);
 		$this->setPort($port);
@@ -150,7 +151,7 @@ class Uri implements UriInterface
 	public function setPort(int $port = null): static
 	{
 		$port ??= $_SERVER['SERVER_PORT'] ?? null;
-		$this->port = ($port === 80 || is_null($port)) ? null : (int) $port;
+		$this->port = ($port === 80 || is_null($port)) ? null : (int)$port;
 
 		return $this;
 	}
