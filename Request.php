@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Inspira\Http;
 
 use Exception;
-use Inspira\Http\Exceptions\RequestPropertyNotFoundException;
-use InvalidArgumentException;
+use Inspira\Http\Exceptions\PropertyNotFoundException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
@@ -73,7 +72,7 @@ class Request extends Message implements ServerRequestInterface
 			return $data[$property];
 		}
 
-		throw new RequestPropertyNotFoundException("Property `$property` does not exist on the request object");
+		throw new PropertyNotFoundException("Property `$property` does not exist on the request object");
 	}
 
 	/**

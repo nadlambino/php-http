@@ -11,11 +11,32 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
+/**
+ * The BaseMiddleware class provides a foundational middleware for processing incoming server requests.
+ *
+ * This middleware handles OPTIONS and HEAD requests, providing appropriate responses.
+ * It also extracts attributes from the current route and adds them to the request before passing
+ * it to the next request handler in the middleware stack.
+ */
 class BaseMiddleware extends Middleware
 {
+	/**
+	 * Indicates whether the middleware is global and should be applied to all routes.
+	 *
+	 * @var bool
+	 */
 	public bool $global = true;
 
-	public function __construct(protected Router $router, protected ResponseInterface $response) { }
+	/**
+	 * Create a new BaseMiddleware instance.
+	 *
+	 * @param Router $router The router instance used for route information.
+	 * @param ResponseInterface $response The response instance used for generating responses.
+	 */
+	public function __construct(protected Router $router, protected ResponseInterface $response)
+	{
+
+	}
 
 	/**
 	 * Process an incoming server request.
@@ -42,7 +63,16 @@ class BaseMiddleware extends Middleware
 		return $handler->handle($request->withAttributes($attributes ?? []));
 	}
 
-	private function handleOptionsRequest(ServerRequestInterface $request): ?ResponseInterface
+	/**
+	 * Handle OPTIONS requests.
+	 *
+	 * If the incoming request is an OPTIONS request, this method generates an appropriate response
+	 * including the allowed HTTP methods for the requested resource.
+	 *
+	 * @param ServerRequestInterface $request
+	 * @return ResponseInterface|null
+	 */
+	protected function handleOptionsRequest(ServerRequestInterface $request): ?ResponseInterface
 	{
 		if ($request->isOptions()) {
 			$allowed = $this->router->getAllowedMethods($request->getUri()->getPath());
@@ -56,7 +86,16 @@ class BaseMiddleware extends Middleware
 		return null;
 	}
 
-	private function handleHeadRequest(ServerRequestInterface $request): ?ResponseInterface
+	/**
+	 * Handle HEAD requests.
+	 *
+	 * If the incoming request is a HEAD request, this method generates an appropriate response
+	 * with an empty body.
+	 *
+	 * @param ServerRequestInterface $request
+	 * @return ResponseInterface|null
+	 */
+	protected function handleHeadRequest(ServerRequestInterface $request): ?ResponseInterface
 	{
 		if ($request->isHead()) {
 			return $this->response
