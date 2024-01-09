@@ -7,8 +7,14 @@ namespace Inspira\Http;
 use Psr\Http\Message\StreamInterface;
 use RuntimeException;
 
+/**
+ * Abstract class representing a stream body and implementing the StreamInterface.
+ */
 abstract class Body implements StreamInterface
 {
+	/**
+	 * @var mixed The underlying stream resource.
+	 */
 	protected mixed $stream;
 
 	/**
@@ -25,7 +31,7 @@ abstract class Body implements StreamInterface
 	public function __toString(): string
 	{
 		$this->seek(0);
-		return (string) stream_get_contents($this->stream);
+		return (string)stream_get_contents($this->stream);
 	}
 
 	/**
@@ -42,7 +48,7 @@ abstract class Body implements StreamInterface
 	/**
 	 * {@inheritdoc}
 	 */
-	public function detach() : mixed
+	public function detach(): mixed
 	{
 		$detachedStream = $this->stream;
 		$this->stream = null;
