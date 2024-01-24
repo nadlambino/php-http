@@ -11,10 +11,10 @@ use Inspira\Contracts\Renderable;
 use Inspira\Contracts\RenderableException;
 use Inspira\Http\Router\Route;
 use Inspira\Http\Router\Router;
+use JetBrains\PhpStorm\NoReturn;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use JetBrains\PhpStorm\NoReturn;
 
 class Handler implements RequestHandlerInterface
 {
