@@ -3,7 +3,7 @@
     "description": "PHP HTTP component.",
     "type": "library",
     "require": {
-        "php": "8.3",
+        "php": "^8.3",
         "psr/http-message": "2.0.x-dev",
         "psr/http-server-middleware": "1.0.x-dev",
         "psr/http-server-handler": "1.0.x-dev",
