@@ -4,7 +4,6 @@
     "type": "library",
     "require": {
         "php": "^8.3",
-        "ext-pdo": "*",
         "psr/http-message": "2.0.x-dev",
         "psr/http-server-middleware": "1.0.x-dev",
         "psr/http-server-handler": "1.0.x-dev",
