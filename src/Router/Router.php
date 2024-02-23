@@ -296,7 +296,7 @@ class Router
 	{
 		$namedRoute = $this->namedRoutes[$name] ?? null;
 		if ($namedRoute) {
-			$uri = $namedRoute->getMethod() . ' ' . $namedRoute->getUri();
+			$uri = $namedRoute->getMethod() . ' Router.php' . $namedRoute->getUri();
 			throw new DuplicateRouteNameException("Route name `$name` has already been used for route `$uri`");
 		}
 
