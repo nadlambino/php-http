@@ -15,6 +15,8 @@ use JetBrains\PhpStorm\NoReturn;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use function Inspira\Utils\arrayable;
+use function Inspira\Utils\stringable;
 
 class Handler implements RequestHandlerInterface
 {
